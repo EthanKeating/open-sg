@@ -29,6 +29,7 @@ dependencies {
     implementation "com.github.retrooper:packetevents-spigot:2.6.0-SNAPSHOT"
     implementation "me.devnatan:inventory-framework-platform-bukkit:3.0.11"
     implementation "com.github.ProtocolSupport:ProtocolSupport:a4f060dc46"
+    implementation "io.github.classgraph:classgraph:4.8.104"
 }
 
 java {
