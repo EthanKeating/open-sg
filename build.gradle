@@ -1,0 +1,42 @@
+plugins {
+    id 'java'
+    id 'io.freefair.lombok' version '6.5.1'
+}
+
+group = 'me.eths'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+
+    maven { url "https://jitpack.io" }
+    maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+    maven { url "https://repo.viaversion.com" }
+
+}
+
+dependencies {
+    compileOnly "org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT"
+    compileOnly "org.spigotmc:spigot:1.8.8-R0.1-SNAPSHOT"
+
+    compileOnly "com.viaversion:viaversion-api:5.1.0"
+
+    implementation "com.github.retrooper:packetevents-spigot:2.6.0-SNAPSHOT"
+    implementation "me.devnatan:inventory-framework-platform-bukkit:3.0.11"
+    implementation "com.github.ProtocolSupport:ProtocolSupport:a4f060dc46"
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
+compileJava {
+    options.encoding = "UTF-8"
+}
