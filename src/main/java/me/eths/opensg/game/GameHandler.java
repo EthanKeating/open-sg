@@ -7,7 +7,6 @@ import me.eths.opensg.game.state.GameState;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-@RequiredArgsConstructor
 public class GameHandler {
 
     private final SGPlugin plugin;

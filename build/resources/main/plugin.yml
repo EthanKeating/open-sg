@@ -1,0 +1,4 @@
+name: OpenSG
+main: me.eths.opensg.SGPlugin
+version: 0.1
+author: Eths

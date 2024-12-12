@@ -1,13 +1,18 @@
 package me.eths.opensg.reflection;
 
 import lombok.SneakyThrows;
+import net.minecraft.server.v1_8_R3.*;
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -121,6 +126,68 @@ public class Reflection {
                 .collect(Collectors.toList());
 
         return constructorList.get(0).newInstance(params);
+    }
+
+    public void sendPacket(Player player, Object packet) {
+        callMethod(getConnection(player), "sendPacket", packet);
+    }
+
+    public PlayerConnection getConnection(Player player) {
+        return ((CraftPlayer) player).getHandle().playerConnection;
+    }
+
+    public Object createObjectivePacket(int mode, String name, String displayName) {
+        Object packet = new PacketPlayOutScoreboardObjective();
+        setDeclaredField(packet, "a", name);
+
+        // Mode
+        // 0 - Crate
+        // 1 - Delete
+        // 2 - Update
+        setDeclaredField(packet, "d", mode);
+
+        if (mode == 0 || mode == 2) {
+            setDeclaredField(packet, "b", displayName);
+            setDeclaredField(packet, "c", IScoreboardCriteria.EnumScoreboardHealthDisplay.INTEGER);
+        }
+
+        return packet;
+    }
+
+    public Object createObjectiveDisplay(String name, int display) {
+        Object packet = new PacketPlayOutScoreboardDisplayObjective();
+        // Slot
+        setDeclaredField(packet, "a", display);
+        setDeclaredField(packet, "b", name);
+
+        return packet;
+    }
+
+    public Object createTeamPacket(String name, Collection<String> players, int mode, String prefix, String suffix) {
+        PacketPlayOutScoreboardTeam packet = new PacketPlayOutScoreboardTeam();
+        setDeclaredField(packet, "a", name);
+        setDeclaredField(packet, "h", mode);
+        setDeclaredField(packet, "b", ""); //displayname
+        setDeclaredField(packet, "c", ""); //prefix
+        setDeclaredField(packet, "d", ""); //suffix
+        setDeclaredField(packet, "i", 0);
+        setDeclaredField(packet, "e", "always");
+        setDeclaredField(packet, "f", 0);
+        setDeclaredField(packet, "g", players);
+
+        return packet;
+    }
+
+    public PacketPlayOutScoreboardScore createScorePacket(String dummy, String name, int score, int action) {
+        PacketPlayOutScoreboardScore packet = new PacketPlayOutScoreboardScore(dummy);
+        //setField(packet, "b", name);
+        setField(packet, "c", score);
+
+        setField(packet, "d", action == 0 ?
+                PacketPlayOutScoreboardScore.EnumScoreboardAction.CHANGE :
+                PacketPlayOutScoreboardScore.EnumScoreboardAction.REMOVE);
+
+        return packet;
     }
 
 }
