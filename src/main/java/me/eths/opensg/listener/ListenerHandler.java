@@ -16,19 +16,11 @@ import java.util.HashSet;
 
 public class ListenerHandler {
 
-    private final SGPlugin plugin;
-    private final ArrayList<Listener> listeners;
-
     public ListenerHandler(SGPlugin plugin) {
-        this.plugin = plugin;
-
-        listeners = new ArrayList<>(Arrays.asList(
+        Arrays.asList(
                 new PlayerJoinListener(plugin),
                 new PlayerQuitListener(plugin)
-        ));
-
-        listeners.forEach(listener -> Bukkit.getPluginManager().registerEvents(listener, plugin));
-
+        ).forEach(listener -> Bukkit.getPluginManager().registerEvents(listener, plugin));
     }
 
 }

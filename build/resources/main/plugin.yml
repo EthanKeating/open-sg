@@ -2,3 +2,11 @@ name: OpenSG
 main: me.eths.opensg.SGPlugin
 version: 0.1
 author: Eths
+load: POSTWORLD
+softdepend:
+  - ProtocolLib
+  - ProtocolSupport
+  - ViaVersion
+  - ViaBackwards
+  - ViaRewind
+  - Geyser-Spigot

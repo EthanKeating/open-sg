@@ -1,0 +1,13 @@
+Sidebar:
+  Lobby:
+    Title: "&aLobby &c2:00"
+    Lines:
+      - "&6&l» Time"
+      - "&f10 Jun 2014"
+      - "&f07:05 PM EDT"
+      - ""
+      - "&6&l» Server"
+      - "&3NA&8: &f200"
+      - ""
+      - "&6&l» Players"
+      - "&fPlaying: 2"

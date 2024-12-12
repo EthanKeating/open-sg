@@ -1,14 +1,24 @@
 package me.eths.opensg.sidebar;
 
-import me.eths.opensg.reflection.Reflection;
+import com.github.retrooper.packetevents.protocol.player.User;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDisplayScoreboard;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerScoreboardObjective;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateScore;
+import me.eths.opensg.profile.Profile;
 import me.eths.opensg.util.Pair;
 import me.eths.opensg.util.TextUtil;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.ChatColor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
-public class SidebarImpl extends Reflection {
+public class SidebarImpl {
+
     private static final char[] CODES = new char[] {
             '0', '1', '2',
             '3', '4', '5',
@@ -19,54 +29,45 @@ public class SidebarImpl extends Reflection {
     private static final String SB_NAME = "SB-COMPONENT";
     private static final String SB_LINE_NAME = "SB-LINE-";
 
-    private final UUID uuid;
+    private final Profile profile;
     private String title = "";
     private List<String> lines = new ArrayList<>(); //Remove storing lines, just use lines size.
     private boolean zeroBoard;
 
-    public SidebarImpl(UUID uuid) {
-        this.uuid = uuid;
+    public SidebarImpl(Profile profile) {
+        this.profile = profile;
         //zeroBoard = !profile.isLegacy();
-        sendPacket(toBukkit(), createObjectivePacket(0, SB_NAME, ""));
-        sendPacket(toBukkit(), createObjectiveDisplay(SB_NAME, 1));
-
-        for (int lineId = 0; lineId < 15; lineId++) {
-            sendPacket(toBukkit(), createTeamPacket(
-                    SB_LINE_NAME + lineId,
-                    Collections.singletonList(TextUtil.translate( "&" + CODES[lineId])),
-                    0,
-                    "",
-                    ""
-            ));
-        }
+        this.init();
     }
 
-    public Player toBukkit() {
-        return Bukkit.getPlayer(uuid);
-    }
-
-    public void setTitle(String newTitle) {
+    public SidebarImpl setTitle(String newTitle) {
         newTitle = newTitle.substring(0, Math.min(newTitle.length(), 32));
-        if (title.equals(newTitle)) return;
+        if (this.title.equals(newTitle)) return this;
 
-        sendPacket(toBukkit(), createObjectivePacket(2, SB_NAME, TextUtil.translate(title)));
+        User user = profile.getUser();
+
+        this.title = newTitle;
+        user.sendPacket(new WrapperPlayServerScoreboardObjective(
+                SB_NAME,
+                WrapperPlayServerScoreboardObjective.ObjectiveMode.UPDATE,
+                Component.text(ChatColor.translateAlternateColorCodes('&', title)), //Title
+                WrapperPlayServerScoreboardObjective.RenderType.INTEGER));
+
+        return this;
     }
-
     public SidebarImpl setLines(List<String> newLines) {
-        if (!zeroBoard)
-            Collections.reverse(newLines);
+        if (!zeroBoard) Collections.reverse(newLines);
 
         int sizeDifference = newLines.size() - lines.size();
-
-        for (int i = 0; i < Math.abs(sizeDifference); i++) {
-            if (sizeDifference > 0)
+        if (sizeDifference > 0)
+            for (int i = 0; i < sizeDifference; i++)
                 showLine(lines.size() + i);
-            else
+        else
+            for (int i = 0; i < -sizeDifference; i++)
                 hideLine(lines.size() - 1 - i);
-        }
 
-        for (int lineId = 0; lineId < newLines.size(); lineId++)
-            setLine(lineId, newLines.get(lineId));
+        for (int i = 0; i < newLines.size(); i++)
+            setLine(i, newLines.get(i));
 
         lines = newLines;
         return this;
@@ -77,32 +78,90 @@ public class SidebarImpl extends Reflection {
             if (lines.get(lineId).equals(lineText))
                 return;
 
+        User user = profile.getUser();
+
+        String teamName = SB_LINE_NAME + lineId;
         Pair<String, String> splitLine = TextUtil.splitLine(lineText);
 
-        sendPacket(toBukkit(), createTeamPacket(
-                SB_LINE_NAME + lineId,
-                Collections.emptyList(),
-                2,
-                splitLine.getKey(),
-                splitLine.getValue()
-        ));
+        user.sendPacket(
+                new WrapperPlayServerTeams(
+                        teamName,
+                        WrapperPlayServerTeams.TeamMode.UPDATE,
+                        new WrapperPlayServerTeams.ScoreBoardTeamInfo(
+                                Component.text(""),
+                                Component.text(splitLine.getKey()), //prefix
+                                Component.text(splitLine.getValue()), //suffix
+                                WrapperPlayServerTeams.NameTagVisibility.ALWAYS,
+                                WrapperPlayServerTeams.CollisionRule.ALWAYS,
+                                NamedTextColor.WHITE,
+                                WrapperPlayServerTeams.OptionData.NONE
+                        ),
+                        Collections.emptyList()
+                )
+        );
+    }
+
+    private void init() {
+        User user = profile.getUser();
+        user.sendPacket(new WrapperPlayServerScoreboardObjective(
+                SB_NAME,
+                WrapperPlayServerScoreboardObjective.ObjectiveMode.CREATE, Component.text(""), //Title
+                WrapperPlayServerScoreboardObjective.RenderType.INTEGER));
+
+        user.sendPacket(new WrapperPlayServerDisplayScoreboard(1, SB_NAME));
+
+        for (int lineId = 0; lineId < 15; lineId++) {
+
+            String dummyName = ChatColor.translateAlternateColorCodes('&', "&" + CODES[lineId]);
+            String teamName = SB_LINE_NAME + lineId;
+
+            user.sendPacket( //No reason to create or delete a team whenever a line is hidden or shown, just add all teams first
+                    new WrapperPlayServerTeams(
+                            teamName,
+                            WrapperPlayServerTeams.TeamMode.CREATE,
+                            new WrapperPlayServerTeams.ScoreBoardTeamInfo(
+                                    Component.text(""), //displayname - not required?
+                                    Component.text(""), //prefix
+                                    Component.text(""), //suffix
+                                    WrapperPlayServerTeams.NameTagVisibility.ALWAYS,
+                                    WrapperPlayServerTeams.CollisionRule.ALWAYS,
+                                    NamedTextColor.WHITE,
+                                    WrapperPlayServerTeams.OptionData.NONE
+                            ),
+                            Collections.singletonList(dummyName)
+                    )
+            );
+        }
+    }
+
+
+    private void hideLine(int lineId) {
+        User user = profile.getUser();
+
+        String dummyName = ChatColor.translateAlternateColorCodes('&', "&" + CODES[lineId]);
+
+        user.sendPacket(
+                new WrapperPlayServerUpdateScore(
+                        dummyName,
+                        WrapperPlayServerUpdateScore.Action.REMOVE_ITEM,
+                        SB_NAME,
+                        Optional.of(zeroBoard ? 0 : lineId)
+                )
+        );
     }
 
     private void showLine(int lineId) {
-        sendPacket(toBukkit(), createScorePacket(
-                TextUtil.translate( "&" + CODES[lineId]),
-                SB_NAME,
-                zeroBoard ? 0 : lineId,
-                0
-        ));
-    }
+        User user = profile.getUser();
 
-    private void hideLine(int lineId) {
-        sendPacket(toBukkit(), createScorePacket(
-                TextUtil.translate( "&" + CODES[lineId]),
-                SB_NAME,
-                zeroBoard ? 0 : lineId,
-                1
-        ));
+        String dummyName = ChatColor.translateAlternateColorCodes('&', "&" + CODES[lineId]);
+
+        user.sendPacket(
+                new WrapperPlayServerUpdateScore(
+                        dummyName,
+                        WrapperPlayServerUpdateScore.Action.CREATE_OR_UPDATE_ITEM,
+                        SB_NAME,
+                        Optional.of(zeroBoard ? 0 : lineId)
+                )
+        );
     }
 }
