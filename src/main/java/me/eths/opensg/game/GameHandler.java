@@ -10,6 +10,7 @@ import me.eths.opensg.game.timer.GameTimer;
 import me.eths.opensg.game.updater.IUpdater;
 import me.eths.opensg.game.updater.SidebarUpdater;
 import me.eths.opensg.lang.LanguageHandler;
+import me.eths.opensg.util.Pair;
 import me.eths.opensg.util.TextUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -79,22 +80,28 @@ public class GameHandler {
             currentRunnable.runTaskTimer(plugin, 0L, 20L);
     }
 
-    public void broadcast(String messagePath) {
+    public void broadcast(String message) {
+        getPlayerList()
+            .stream()
+            .map(Bukkit::getPlayer)
+            .forEach(player -> send(player, message));
+    }
+
+    public void send(Player player, String message) {
+        Pair<Integer, String> significantUnit = gameTimer.toSignificantUnit();
+
+        String finalMessage = message
+                .replace("%prefix%", getMessage("messages.prefix"))
+                .replace("%unit%", significantUnit.getValue())
+                .replace("%numeral%", significantUnit.getKey().toString());//chain replacements
+
+        player.sendMessage(TextUtil.translate(finalMessage));
+    }
+
+    public String getMessage(String messagePath) {
         LanguageHandler languageHandler = plugin.getLanguageHandler();
-                getPlayerList()
-                .stream()
-                .map(Bukkit::getPlayer)
-                .forEach(player -> {
-                    FileConfiguration fileConfiguration = languageHandler.getLanguageFile(LanguageHandler.DEFAULT_LANGUAGE);
+        FileConfiguration fileConfiguration = languageHandler.getLanguageFile(LanguageHandler.DEFAULT_LANGUAGE);
 
-                    player.sendMessage(TextUtil.translate(fileConfiguration.getString(messagePath)));
-                });
+        return fileConfiguration.getString(messagePath);
     }
-
-
-
-    private void stop() {
-
-    }
-
 }

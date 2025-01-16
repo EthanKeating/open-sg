@@ -1,4 +1,4 @@
-package me.eths.opensg.sidebar;
+package me.eths.opensg.design.sidebar;
 
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDisplayScoreboard;

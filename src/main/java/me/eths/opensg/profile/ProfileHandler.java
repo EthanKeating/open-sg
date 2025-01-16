@@ -28,14 +28,18 @@ public class ProfileHandler {
     }
 
     public Profile createProfile(Player player) {
-        Profile profile = new Profile(player);
+        Profile profile = new Profile(player, plugin);
         profileMap.put(player.getUniqueId(), profile);
         return profile;
     }
 
-    public void deleteProfile(Player player) {
-        if (!profileMap.containsKey(player.getUniqueId())) return;
+    public Profile deleteProfile(Player player) {
+        if (!profileMap.containsKey(player.getUniqueId())) return null;
+
+        Profile profile = profileMap.get(player.getUniqueId());
         profileMap.remove(player.getUniqueId());
+
+        return profile;
     }
 
 }

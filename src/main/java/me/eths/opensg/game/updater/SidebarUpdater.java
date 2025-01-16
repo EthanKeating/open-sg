@@ -5,7 +5,11 @@ import me.eths.opensg.game.GameHandler;
 import me.eths.opensg.game.state.GameState;
 import me.eths.opensg.game.timer.GameTimer;
 import me.eths.opensg.profile.ProfileHandler;
+import me.eths.opensg.time.TimeHandler;
 import org.bukkit.configuration.file.FileConfiguration;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class SidebarUpdater implements IUpdater {
 
@@ -13,6 +17,7 @@ public class SidebarUpdater implements IUpdater {
     public void update(SGPlugin plugin) {
         GameHandler gameHandler = plugin.getGameHandler();
         ProfileHandler profileHandler = plugin.getProfileHandler();
+        TimeHandler timeHandler = plugin.getTimeHandler();
         GameState gameState = gameHandler.getGameState();
         GameTimer gameTimer = gameHandler.getGameTimer();
 
@@ -21,8 +26,16 @@ public class SidebarUpdater implements IUpdater {
         switch (gameState) {
             case LOBBY:
                 profileHandler.getProfileMap().values().forEach(profile -> {
-                    profile.getSidebar().setTitle(language.getString("Sidebar.Lobby.Title"));
-                    profile.getSidebar().setLines(language.getStringList("Sidebar.Lobby.Lines"));
+                    String title = language.getString("sidebar.Lobby.title")
+                            .replace("%timer%", gameHandler.getGameTimer().toString());
+//                    List<String> lines = language.getStringList("sidebar.Lobby.lines")
+//                            .stream()
+//                            .map(string -> timeHandler.replaceDateTime(string, profile.getTimeZone()))
+//                            .collect(Collectors.toList());
+                    List<String> lines = language.getStringList("sidebar.Lobby.lines");
+
+                    profile.getSidebar().setTitle(title);
+                    profile.getSidebar().setLines(lines);
                 });
         }
     }

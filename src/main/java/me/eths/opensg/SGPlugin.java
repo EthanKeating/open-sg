@@ -9,6 +9,7 @@ import me.eths.opensg.lang.LanguageHandler;
 import me.eths.opensg.listener.ListenerHandler;
 import me.eths.opensg.packet.PacketHandler;
 import me.eths.opensg.profile.ProfileHandler;
+import me.eths.opensg.time.TimeHandler;
 import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
@@ -18,6 +19,7 @@ public class SGPlugin extends JavaPlugin {
     private LanguageHandler languageHandler;
     private ListenerHandler listenerHandler;
     private ProfileHandler profileHandler;
+    private TimeHandler timeHandler;
 
     public void onLoad() {
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(this));
@@ -33,7 +35,7 @@ public class SGPlugin extends JavaPlugin {
         languageHandler = new LanguageHandler(this);
         listenerHandler = new ListenerHandler(this);
         profileHandler = new ProfileHandler(this);
-
+        timeHandler = new TimeHandler(this);
         gameHandler = new GameHandler(this);
 
         gameHandler.init();

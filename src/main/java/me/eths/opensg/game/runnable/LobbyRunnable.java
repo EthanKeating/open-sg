@@ -7,6 +7,7 @@ import me.eths.opensg.game.settings.GameSettings;
 import me.eths.opensg.game.state.GameState;
 import me.eths.opensg.game.timer.GameTimer;
 import me.eths.opensg.lang.LanguageHandler;
+import me.eths.opensg.util.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -38,32 +39,27 @@ public class LobbyRunnable extends BukkitRunnable {
     public void run() {
         int currentTime = gameTimer.decrement();
 
-        List<Player> playerList = gameHandler.getPlayerList()
-                .stream()
-                .map(Bukkit::getPlayer)
-                .collect(Collectors.toList());
-
-        //Switch to pregame
         if (currentTime == 0) {
             if (gameSettings.getMinimumPlayers() > gameHandler.getPlayerList().size()) {
                 gameTimer.reset();
+                gameHandler.broadcast(gameHandler.getMessage("messages.lobby-cant-start"));
                 return;
             }
-            gameHandler.broadcast("lobby-map-name");
-            gameHandler.broadcast("lobby-map-author");
-            gameHandler.broadcast("lobby-map-link");
-            gameHandler.broadcast("lobby-end");
+            gameHandler.broadcast(gameHandler.getMessage("messages.lobby-map-name"));
+            gameHandler.broadcast(gameHandler.getMessage("messages.lobby-map-author"));
+            gameHandler.broadcast(gameHandler.getMessage("messages.lobby-map-link"));
+            gameHandler.broadcast(gameHandler.getMessage("messages.lobby-end"));
 
             cancel();
         }
 
         //Show vote messages
         if (currentTime % 30 == 0) {
-            //playerList.forEach(player -> languageHandler.sendMessage(player, "lobby-count"));
+            //broadcast("lobby-votes");
         }
 
-        if (currentTime <= 5 || (currentTime <= 30 && currentTime % 10 == 0) || currentTime % 60 == 0) {
-            gameHandler.broadcast("lobby-count");
+        if (currentTime <= 5 || currentTime == 10 || currentTime % 30 == 0) {
+            gameHandler.broadcast(gameHandler.getMessage("messages.lobby-count"));
         }
     }
 

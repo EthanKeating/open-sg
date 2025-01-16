@@ -1,8 +1,8 @@
 package me.eths.opensg.listener.player;
 
 import me.eths.opensg.SGPlugin;
+import me.eths.opensg.game.GameHandler;
 import me.eths.opensg.profile.Profile;
-import me.eths.opensg.sidebar.SidebarImpl;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,8 +19,12 @@ public class PlayerJoinListener implements Listener {
     private void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         Profile profile = plugin.getProfileHandler().createProfile(player);
+        GameHandler gameHandler = plugin.getGameHandler();
 
         event.setJoinMessage(null);
+        gameHandler.getPlayerList().add(player.getUniqueId());
+
+        player.sendMessage(player.getAddress().getAddress().toString());
 
         profile.getSidebar().setTitle("&aLobby &c2:00");
         profile.getSidebar().setLines(
